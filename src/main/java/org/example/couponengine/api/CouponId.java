@@ -2,6 +2,7 @@ package org.example.couponengine.api;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.NonNull;
 
 public record CouponId(String id) {
 
@@ -16,6 +17,12 @@ public record CouponId(String id) {
 
     @JsonValue
     public String id() {
+        return id;
+    }
+
+    @Override
+    @NonNull
+    public String toString() {
         return id;
     }
 }

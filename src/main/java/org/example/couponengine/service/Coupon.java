@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.example.couponengine.api.CreateCouponRequest;
 import org.example.couponengine.database.CouponEntity;
 import org.example.couponengine.api.CouponId;
+import org.example.couponengine.geo.CountryCode;
 
 import java.time.Instant;
 
@@ -13,7 +14,7 @@ public class Coupon {
     Instant createdAt;
     int maxUsages;
     int currentUsages;
-    String countryCode;
+    CountryCode countryCode;
 
     public static CouponEntity toEntity(Coupon coupon) {
         return new CouponEntity(
@@ -21,7 +22,7 @@ public class Coupon {
                 coupon.createdAt,
                 coupon.maxUsages,
                 coupon.currentUsages,
-                coupon.countryCode
+                coupon.countryCode.toString()
         );
     }
 

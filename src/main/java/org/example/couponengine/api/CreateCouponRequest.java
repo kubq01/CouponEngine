@@ -1,5 +1,7 @@
 package org.example.couponengine.api;
 
+import org.example.couponengine.geo.CountryCode;
+
 import java.time.Instant;
 
 public record CreateCouponRequest(
@@ -7,5 +9,5 @@ public record CreateCouponRequest(
         Instant createdAt,
         int maxUsages,
         int currentUsages,
-        String countryCode
+        CountryCode countryCode
 ) {}

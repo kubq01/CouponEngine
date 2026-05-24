@@ -3,7 +3,10 @@ package org.example.couponengine.service;
 import lombok.AllArgsConstructor;
 import org.example.couponengine.api.CouponId;
 import org.example.couponengine.api.UseCouponResponse;
+import org.example.couponengine.api.UserId;
 import org.example.couponengine.database.CouponRepository;
+import org.example.couponengine.database.CouponUsageEntity;
+import org.example.couponengine.database.CouponUsageRepository;
 import org.example.couponengine.exceptions.CouponAlreadyExistsException;
 import org.example.couponengine.geo.GeoMappingService;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import static org.example.couponengine.api.UseCouponResponse.*;
 public class CouponService {
 
     private final CouponRepository couponRepository;
+    private final CouponUsageRepository couponUsageRepository;
     private final GeoMappingService geoMappingService;
 
     public void save(Coupon coupon) {
@@ -27,9 +31,14 @@ public class CouponService {
     }
 
     @Transactional
-    public UseCouponResponse useCoupon(CouponId couponId, String ip) {
+    public UseCouponResponse useCoupon(CouponId couponId, String ip, UserId userId) {
 
         final var id = couponId.toString().toLowerCase();
+
+        if (couponUsageRepository.findByCouponIdAndUserId(id, userId.toString()).isPresent()) {
+            return COUPON_ALREADY_USED_BY_USER_FAILURE;
+        }
+
         final var country = geoMappingService.getCountryCode(ip);
 
         final var existingCoupon = couponRepository.findById(id)
@@ -46,6 +55,7 @@ public class CouponService {
         int updated = couponRepository.incrementIfPossible(id);
 
         if (updated == 1) {
+            couponUsageRepository.save(CouponUsageEntity.createEntity(new CouponId(id), userId));
             return SUCCESS;
         }
 

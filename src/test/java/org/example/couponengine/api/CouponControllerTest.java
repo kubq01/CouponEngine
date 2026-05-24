@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import org.example.couponengine.BaseIntegrationTest;
 import org.example.couponengine.database.CouponEntity;
 import org.example.couponengine.database.CouponRepository;
+import org.example.couponengine.database.CouponUsageRepository;
 import org.example.couponengine.geo.GeoMappingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.testcontainers.utility.Base58.randomString;
 
 class CouponControllerTest extends BaseIntegrationTest {
 
@@ -30,7 +32,10 @@ class CouponControllerTest extends BaseIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private CouponRepository repository;
+    private CouponRepository couponRepository;
+
+    @Autowired
+    private CouponUsageRepository couponUsageRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -40,12 +45,15 @@ class CouponControllerTest extends BaseIntegrationTest {
 
     @BeforeEach
     public void setup() {
+        couponRepository.deleteAll();
+        couponUsageRepository.deleteAll();
         when(geoService.getCountryCode(anyString()))
                 .thenReturn("PL");
     }
 
     @Test
     void shouldCreateCouponAndSaveInDatabase() throws Exception {
+        //when
         String json = """
             {
               "id": "spring",
@@ -56,12 +64,13 @@ class CouponControllerTest extends BaseIntegrationTest {
             }
             """;
 
+        //then
         mockMvc.perform(post("/coupon/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
                 .andExpect(status().isNoContent());
 
-        var saved = repository.findAll();
+        var saved = couponRepository.findAll();
 
         assertThat(saved).hasSize(1);
         assertThat(saved.get(0).getId()).isEqualTo("spring");
@@ -69,7 +78,7 @@ class CouponControllerTest extends BaseIntegrationTest {
 
     @Test
     void shouldReturnBadRequestWhenCouponIdIsInvalid() throws Exception {
-
+        //when
         String json = """
             {
               "id": "invalid-id!",
@@ -80,6 +89,7 @@ class CouponControllerTest extends BaseIntegrationTest {
             }
             """;
 
+        //then
         mockMvc.perform(post("/coupon/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json))
@@ -88,7 +98,7 @@ class CouponControllerTest extends BaseIntegrationTest {
 
     @Test
     void shouldRejectDuplicateCouponId() throws Exception {
-
+        //when
         String c1 = """
             {
               "id": "spring",
@@ -109,6 +119,7 @@ class CouponControllerTest extends BaseIntegrationTest {
             }
             """;
 
+        //then
         mockMvc.perform(post("/coupon/create")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(c1))
@@ -119,13 +130,23 @@ class CouponControllerTest extends BaseIntegrationTest {
                         .content(c2))
                 .andExpect(status().isConflict());
 
-        assertThat(repository.findAll()).hasSize(1);
+        assertThat(couponRepository.findAll()).hasSize(1);
     }
 
     @Test
     void shouldReturnNotFoundWhenCouponDoesNotExist() throws Exception {
+        //when
+        String c = """
+            {
+              "couponId": "doesNotExist",
+              "userId": "appUser"
+            }
+            """;
 
-        mockMvc.perform(post("/coupon/use/doesNotExist"))
+        //then
+        mockMvc.perform(post("/coupon/use")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(c))
                 .andExpect(status().isOk())
                 .andExpect(result ->
                         assertThat(result.getResponse().getContentAsString())
@@ -135,8 +156,8 @@ class CouponControllerTest extends BaseIntegrationTest {
 
     @Test
     void shouldThrowErrorForInvalidCountry() throws Exception {
-
-        repository.saveAndFlush(new CouponEntity(
+        //when
+        couponRepository.saveAndFlush(new CouponEntity(
                 "spring",
                 Instant.now(),
                 10,
@@ -144,7 +165,17 @@ class CouponControllerTest extends BaseIntegrationTest {
                 "UK"
         ));
 
-        mockMvc.perform(post("/coupon/use/spring"))
+        String c = """
+            {
+              "couponId": "spring",
+              "userId": "appUser"
+            }
+            """;
+
+        //then
+        mockMvc.perform(post("/coupon/use")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(c))
                 .andExpect(status().isOk())
                 .andExpect(result ->
                         assertThat(result.getResponse().getContentAsString())
@@ -154,14 +185,14 @@ class CouponControllerTest extends BaseIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        var updated = repository.findById("spring").orElseThrow();
+        var updated = couponRepository.findById("spring").orElseThrow();
         assertThat(updated.getCurrentUsages()).isEqualTo(0);
     }
 
     @Test
     void shouldSuccessfullyUseCoupon() throws Exception {
-
-        repository.saveAndFlush(new CouponEntity(
+        //when
+        couponRepository.saveAndFlush(new CouponEntity(
                 "spring",
                 Instant.now(),
                 10,
@@ -169,7 +200,17 @@ class CouponControllerTest extends BaseIntegrationTest {
                 "PL"
         ));
 
-        mockMvc.perform(post("/coupon/use/spring"))
+        String c = """
+            {
+              "couponId": "spring",
+              "userId": "appUser"
+            }
+            """;
+
+        //then
+        mockMvc.perform(post("/coupon/use")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(c))
                 .andExpect(status().isOk())
                 .andExpect(result ->
                         assertThat(result.getResponse().getContentAsString())
@@ -179,15 +220,15 @@ class CouponControllerTest extends BaseIntegrationTest {
         entityManager.flush();
         entityManager.clear();
 
-        var updated = repository.findById("spring").orElseThrow();
+        var updated = couponRepository.findById("spring").orElseThrow();
         assertThat(updated.getCurrentUsages()).isEqualTo(1);
     }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void shouldRejectWhenMaxUsagesReached() throws Exception {
-
-        repository.saveAndFlush(new CouponEntity(
+        //when
+        couponRepository.saveAndFlush(new CouponEntity(
                 "spring",
                 Instant.now(),
                 1,
@@ -195,22 +236,85 @@ class CouponControllerTest extends BaseIntegrationTest {
                 "PL"
         ));
 
-        mockMvc.perform(post("/coupon/use/spring"))
+        String c = """
+            {
+              "couponId": "spring",
+              "userId": "appUser"
+            }
+            """;
+
+        //then
+        mockMvc.perform(post("/coupon/use")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(c))
                 .andExpect(status().isOk())
                 .andExpect(result ->
                         assertThat(result.getResponse().getContentAsString())
                                 .contains("MAX_USAGES_REACHED_FAILURE")
                 );
 
-        var updated = repository.findById("spring").orElseThrow();
+        var updated = couponRepository.findById("spring").orElseThrow();
         assertThat(updated.getCurrentUsages()).isEqualTo(1);
     }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void shouldAllowOnlyMaxSuccessfulUsesUnderHighConcurrency() {
+        //when
+        couponRepository.saveAndFlush(new CouponEntity(
+                "spring",
+                Instant.now(),
+                2,
+                0,
+                "PL"
+        ));
 
-        repository.saveAndFlush(new CouponEntity(
+        String c = """
+            {
+              "couponId": "spring",
+              "userId": "appUser"
+            }
+            """;
+
+        int requests = 2;
+
+        //then
+        List<String> responses = IntStream.range(0, requests)
+                .parallel()
+                .mapToObj(i -> {
+                    try {
+                        return mockMvc.perform(post("/coupon/use")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(c))
+                                .andReturn()
+                                .getResponse()
+                                .getContentAsString();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
+
+        long successCount = responses.stream()
+                .filter(r -> r.contains("SUCCESS"))
+                .count();
+
+        long failureCount = responses.stream()
+                .filter(r -> r.contains("COUPON_ALREADY_USED_BY_USER_FAILURE"))
+                .count();
+
+        assertThat(successCount).isEqualTo(1);
+        assertThat(failureCount).isEqualTo(1);
+
+        var updated = couponRepository.findById("spring").orElseThrow();
+        assertThat(updated.getCurrentUsages()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void shouldAllowOnlyOneUsageOfCouponPerUser() {
+        //when
+        couponRepository.saveAndFlush(new CouponEntity(
                 "spring",
                 Instant.now(),
                 1,
@@ -220,11 +324,14 @@ class CouponControllerTest extends BaseIntegrationTest {
 
         int requests = 20;
 
+        //then
         List<String> responses = IntStream.range(0, requests)
                 .parallel()
                 .mapToObj(i -> {
                     try {
-                        return mockMvc.perform(post("/coupon/use/spring"))
+                        return mockMvc.perform(post("/coupon/use")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(generateUseCouponRequestWithRandomUserId()))
                                 .andReturn()
                                 .getResponse()
                                 .getContentAsString();
@@ -245,7 +352,16 @@ class CouponControllerTest extends BaseIntegrationTest {
         assertThat(successCount).isEqualTo(1);
         assertThat(failureCount).isEqualTo(requests - 1);
 
-        var updated = repository.findById("spring").orElseThrow();
+        var updated = couponRepository.findById("spring").orElseThrow();
         assertThat(updated.getCurrentUsages()).isEqualTo(1);
+    }
+
+    private String generateUseCouponRequestWithRandomUserId() {
+        return """
+        {
+                "couponId": "spring",
+                "userId": "%s"
+        }
+        """.formatted(randomString(16));
     }
 }

@@ -20,15 +20,15 @@ public class CouponController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/use/{couponId}")
+    @PostMapping("/use")
     public ResponseEntity<UseCouponResponse> use(
-            @PathVariable CouponId couponId,
-            HttpServletRequest request
+            @RequestBody UseCouponRequest useCouponRequest,
+            HttpServletRequest servletRequest
     ) {
-        String ip = extractIp(request);
+        String ip = extractIp(servletRequest);
 
         return ResponseEntity.ok(
-                couponService.useCoupon(couponId, ip)
+                couponService.useCoupon(useCouponRequest.couponId(), ip, useCouponRequest.userId())
         );
     }
 

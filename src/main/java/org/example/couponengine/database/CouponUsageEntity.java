@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.example.couponengine.api.CouponId;
-import org.example.couponengine.api.UserId;
 
 import java.util.UUID;
 
@@ -28,10 +26,4 @@ public class CouponUsageEntity {
     private UUID id;
     private String couponId;
     private String userId;
-
-    public static CouponUsageEntity createEntity(CouponId couponId, UserId userId) {
-       return CouponUsageEntity.builder()
-               .couponId(couponId.toString())
-               .userId(userId.toString()).build();
-    }
 }

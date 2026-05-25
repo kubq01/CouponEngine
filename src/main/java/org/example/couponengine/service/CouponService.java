@@ -5,7 +5,6 @@ import org.example.couponengine.api.CouponId;
 import org.example.couponengine.api.UseCouponResponse;
 import org.example.couponengine.api.UserId;
 import org.example.couponengine.database.CouponRepository;
-import org.example.couponengine.database.CouponUsageEntity;
 import org.example.couponengine.database.CouponUsageRepository;
 import org.example.couponengine.exceptions.CouponAlreadyExistsException;
 import org.example.couponengine.geo.GeoMappingService;
@@ -25,7 +24,7 @@ public class CouponService {
     private final GeoMappingService geoMappingService;
 
     public void save(Coupon coupon) {
-        if (couponRepository.existsById(coupon.getId())) {
+        if (couponRepository.existsById(coupon.getId().toLowerCase())) {
             throw new CouponAlreadyExistsException(coupon.getId());
         }
 

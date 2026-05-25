@@ -54,15 +54,7 @@ class CouponControllerTest extends BaseIntegrationTest {
     @Test
     void shouldCreateCouponAndSaveInDatabase() throws Exception {
         //when
-        String json = """
-            {
-              "id": "spring",
-              "createdAt": "2026-05-23T10:00:00Z",
-              "maxUsages": 10,
-              "currentUsages": 0,
-              "countryCode": "PL"
-            }
-            """;
+        String json = createCouponCreateRequest("spring", Instant.now(), 10, 0, "PL");
 
         //then
         mockMvc.perform(post("/coupon/create")
@@ -79,15 +71,19 @@ class CouponControllerTest extends BaseIntegrationTest {
     @Test
     void shouldReturnBadRequestWhenCouponIdIsInvalid() throws Exception {
         //when
-        String json = """
-            {
-              "id": "invalid-id!",
-              "createdAt": "2026-05-23T10:00:00Z",
-              "maxUsages": 10,
-              "currentUsages": 0,
-              "countryCode": "PL"
-            }
-            """;
+        String json = createCouponCreateRequest("invalid-id!", Instant.now(), 10, 0, "PL");
+
+        //then
+        mockMvc.perform(post("/coupon/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenCountryIdIsInvalid() throws Exception {
+        //when
+        String json = createCouponCreateRequest("spring", Instant.now(), 10, 0, "invalid-country-code");
 
         //then
         mockMvc.perform(post("/coupon/create")
@@ -99,25 +95,8 @@ class CouponControllerTest extends BaseIntegrationTest {
     @Test
     void shouldRejectDuplicateCouponId() throws Exception {
         //when
-        String c1 = """
-            {
-              "id": "spring",
-              "createdAt": "2026-05-23T10:00:00Z",
-              "maxUsages": 10,
-              "currentUsages": 0,
-              "countryCode": "PL"
-            }
-            """;
-
-        String c2 = """
-            {
-              "id": "spring",
-              "createdAt": "2026-05-23T10:00:00Z",
-              "maxUsages": 10,
-              "currentUsages": 0,
-              "countryCode": "PL"
-            }
-            """;
+        String c1 = createCouponCreateRequest("spring", Instant.now(), 10, 0, "PL");
+        String c2 = createCouponCreateRequest("SPRING", Instant.now(), 10, 0, "PL");
 
         //then
         mockMvc.perform(post("/coupon/create")
@@ -136,12 +115,7 @@ class CouponControllerTest extends BaseIntegrationTest {
     @Test
     void shouldReturnNotFoundWhenCouponDoesNotExist() throws Exception {
         //when
-        String c = """
-            {
-              "couponId": "doesNotExist",
-              "userId": "appUser"
-            }
-            """;
+        String c = createUseCouponRequest("spring", "appUser");
 
         //then
         mockMvc.perform(post("/coupon/use")
@@ -165,12 +139,7 @@ class CouponControllerTest extends BaseIntegrationTest {
                 "UK"
         ));
 
-        String c = """
-            {
-              "couponId": "spring",
-              "userId": "appUser"
-            }
-            """;
+        String c = createUseCouponRequest("spring", "appUser");
 
         //then
         mockMvc.perform(post("/coupon/use")
@@ -190,6 +159,19 @@ class CouponControllerTest extends BaseIntegrationTest {
     }
 
     @Test
+    void shouldReturnBadRequestForInvalidUserId() throws Exception {
+        //when
+
+        String c = createUseCouponRequest("spring", "invalid-user-id!");
+
+        //then
+        mockMvc.perform(post("/coupon/use")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(c))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void shouldSuccessfullyUseCoupon() throws Exception {
         //when
         couponRepository.saveAndFlush(new CouponEntity(
@@ -200,12 +182,7 @@ class CouponControllerTest extends BaseIntegrationTest {
                 "PL"
         ));
 
-        String c = """
-            {
-              "couponId": "spring",
-              "userId": "appUser"
-            }
-            """;
+        String c = createUseCouponRequest("spring", "appUser");
 
         //then
         mockMvc.perform(post("/coupon/use")
@@ -236,12 +213,7 @@ class CouponControllerTest extends BaseIntegrationTest {
                 "PL"
         ));
 
-        String c = """
-            {
-              "couponId": "spring",
-              "userId": "appUser"
-            }
-            """;
+        String c = createUseCouponRequest("spring", "appUser");
 
         //then
         mockMvc.perform(post("/coupon/use")
@@ -269,12 +241,7 @@ class CouponControllerTest extends BaseIntegrationTest {
                 "PL"
         ));
 
-        String c = """
-            {
-              "couponId": "spring",
-              "userId": "appUser"
-            }
-            """;
+        String c = createUseCouponRequest("spring", "appUser");
 
         int requests = 2;
 
@@ -331,7 +298,7 @@ class CouponControllerTest extends BaseIntegrationTest {
                     try {
                         return mockMvc.perform(post("/coupon/use")
                                         .contentType(MediaType.APPLICATION_JSON)
-                                        .content(generateUseCouponRequestWithRandomUserId()))
+                                        .content(generateUseCouponRequestWithRandomUserId("spring")))
                                 .andReturn()
                                 .getResponse()
                                 .getContentAsString();
@@ -356,12 +323,29 @@ class CouponControllerTest extends BaseIntegrationTest {
         assertThat(updated.getCurrentUsages()).isEqualTo(1);
     }
 
-    private String generateUseCouponRequestWithRandomUserId() {
+    private String generateUseCouponRequestWithRandomUserId(String couponId) {
+        return createUseCouponRequest(couponId, randomString(16));
+    }
+
+    private String createUseCouponRequest(String couponId, String userId) {
         return """
         {
-                "couponId": "spring",
+                "couponId": "%s",
                 "userId": "%s"
         }
-        """.formatted(randomString(16));
+        """.formatted(couponId, userId);
+    }
+
+    private String createCouponCreateRequest(String id, Instant createdAt, int maxUsages,
+                                             int currentUsages, String countryCode) {
+        return """
+            {
+              "id": "%s",
+              "createdAt": "%s",
+              "maxUsages": %s,
+              "currentUsages": %s,
+              "countryCode": "%s"
+            }
+            """.formatted(id, createdAt.toString(), maxUsages, currentUsages, countryCode);
     }
 }

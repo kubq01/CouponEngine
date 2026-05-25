@@ -12,6 +12,8 @@ import org.example.couponengine.geo.GeoMappingService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 import static org.example.couponengine.api.UseCouponResponse.*;
 
 @Service
@@ -35,30 +37,35 @@ public class CouponService {
 
         final var id = couponId.toString().toLowerCase();
 
-        if (couponUsageRepository.findByCouponIdAndUserId(id, userId.toString()).isPresent()) {
-            return COUPON_ALREADY_USED_BY_USER_FAILURE;
-        }
-
         final var country = geoMappingService.getCountryCode(ip);
 
-        final var existingCoupon = couponRepository.findById(id)
+        final var coupon = couponRepository.findById(id)
                 .orElse(null);
 
-        if (existingCoupon == null) {
+        if (coupon == null) {
             return COUPON_NOT_FOUND_FAILURE;
         }
 
-        if (!existingCoupon.getCountryCode().equalsIgnoreCase(country)) {
+        if (!coupon.getCountryCode().equalsIgnoreCase(country)) {
             return INVALID_COUNTRY_FAILURE;
         }
 
-        int updated = couponRepository.incrementIfPossible(id);
+        int inserted = couponUsageRepository.insertIfNotExists(
+                UUID.randomUUID(),
+                id,
+                userId.toString()
+        );
 
-        if (updated == 1) {
-            couponUsageRepository.save(CouponUsageEntity.createEntity(new CouponId(id), userId));
-            return SUCCESS;
+        if (inserted == 0) {
+            return COUPON_ALREADY_USED_BY_USER_FAILURE;
         }
 
-        return MAX_USAGES_REACHED_FAILURE;
+        final int updated = couponRepository.incrementIfPossible(id);
+
+        if (updated != 1) {
+            return MAX_USAGES_REACHED_FAILURE;
+        }
+
+        return SUCCESS;
     }
 }

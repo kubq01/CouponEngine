@@ -1,9 +1,6 @@
 package org.example.couponengine.database;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -16,6 +13,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(
+        name = "coupon_usage",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "coupon_user_usage",
+                        columnNames = {"coupon_id", "user_id"}
+                )
+        }
+)
 public class CouponUsageEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

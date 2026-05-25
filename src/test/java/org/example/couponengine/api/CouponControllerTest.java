@@ -259,7 +259,7 @@ class CouponControllerTest extends BaseIntegrationTest {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void shouldAllowOnlyMaxSuccessfulUsesUnderHighConcurrency() {
+    void shouldAllowOnlyOneUsageOfCouponPeruser() {
         //when
         couponRepository.saveAndFlush(new CouponEntity(
                 "spring",
@@ -312,7 +312,7 @@ class CouponControllerTest extends BaseIntegrationTest {
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    void shouldAllowOnlyOneUsageOfCouponPerUser() {
+    void shouldAllowOnlyMaxSuccessfulUsesUnderHighConcurrency() {
         //when
         couponRepository.saveAndFlush(new CouponEntity(
                 "spring",

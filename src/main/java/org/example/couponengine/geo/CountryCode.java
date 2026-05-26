@@ -3,7 +3,7 @@ package org.example.couponengine.geo;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.NonNull;
-import org.example.couponengine.coupon.exception.InvalidRequestParameter;
+import org.example.couponengine.commons.InvalidRequestParameter;
 
 public record CountryCode(String countryCode) {
     @JsonCreator

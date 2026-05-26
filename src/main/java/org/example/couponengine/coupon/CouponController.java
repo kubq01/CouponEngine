@@ -1,5 +1,7 @@
 package org.example.couponengine.coupon;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.example.couponengine.coupon.dto.CreateCouponRequest;
@@ -17,12 +19,15 @@ public class CouponController {
     private final CouponService couponService;
 
     @PostMapping("/create")
+    @Operation(summary = "creates a coupon")
+    @ApiResponse(responseCode = "204", description = "Coupon created successfully")
     public ResponseEntity<Void> createCoupon(@RequestBody CreateCouponRequest coupon) {
         couponService.save(Coupon.fromRequest(coupon));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/redeem")
+    @Operation(summary = "Redeems coupon")
     public ResponseEntity<RedeemCouponResponse> redeem(
             @RequestBody RedeemCouponRequest redeemCouponRequest,
             HttpServletRequest servletRequest

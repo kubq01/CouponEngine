@@ -1,6 +1,6 @@
 package org.example.couponengine.geo;
 
-import org.example.couponengine.geo.exception.GeoLookupException;
+import org.example.couponengine.commons.GeoLookupException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

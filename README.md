@@ -63,8 +63,8 @@ Wszystkie tekstowe dane wejściowe są walidowane przed wykonaniem jakichkolwiek
 
 Walidacja obejmuje:
 
-- ograniczenie długości danych,
-- dopuszczenie wyłącznie znaków alfanumerycznych
+- ograniczenie długości dla wybranych danych,
+- dopuszczenie wyłącznie znaków alfanumerycznych oraz w niektórych przypadkach znaków '-' i '_'
 
 Celem tego podejścia jest:
 
@@ -384,8 +384,8 @@ All textual input data is validated before any business logic or database operat
 
 Validation includes:
 
-- maximum length restrictions,
-- allowing only alphanumeric characters.
+- maximum length limits for selected data,
+- allowing only alphanumeric characters and in some cases '-' and '_'.
 
 The purpose of this approach is:
 

@@ -1,8 +1,5 @@
 package org.example.couponengine.commons;
 
-import org.example.couponengine.coupon.exception.CouponAlreadyExistsException;
-import org.example.couponengine.coupon.exception.InvalidRequestParameter;
-import org.example.couponengine.geo.exception.GeoLookupException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

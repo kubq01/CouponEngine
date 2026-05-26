@@ -3,7 +3,7 @@ package org.example.couponengine.coupon.domain;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.NonNull;
-import org.example.couponengine.coupon.exception.InvalidRequestParameter;
+import org.example.couponengine.commons.InvalidRequestParameter;
 
 public record CouponId(String id) {
 
@@ -25,5 +25,9 @@ public record CouponId(String id) {
     @NonNull
     public String toString() {
         return id;
+    }
+
+    public String getNormalizedId() {
+        return this.id().toLowerCase();
     }
 }

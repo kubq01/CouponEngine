@@ -5,7 +5,7 @@ import org.example.couponengine.coupon.dto.RedeemCouponRequest;
 import org.example.couponengine.coupon.dto.RedeemCouponResponse;
 import org.example.couponengine.coupon.persistence.CouponRepository;
 import org.example.couponengine.coupon.persistence.CouponUsageRepository;
-import org.example.couponengine.coupon.exception.CouponAlreadyExistsException;
+import org.example.couponengine.commons.CouponAlreadyExistsException;
 import org.example.couponengine.geo.GeoMappingService;
 import org.example.couponengine.coupon.domain.Coupon;
 import org.springframework.stereotype.Service;
@@ -24,8 +24,8 @@ public class CouponService {
     private final GeoMappingService geoMappingService;
 
     public void save(Coupon coupon) {
-        if (couponRepository.existsById(coupon.getId().toLowerCase())) {
-            throw new CouponAlreadyExistsException(coupon.getId());
+        if (couponRepository.existsById(coupon.getId().getNormalizedId())) {
+            throw new CouponAlreadyExistsException(coupon.getId().toString());
         }
 
         couponRepository.save(Coupon.toEntity(coupon));
@@ -34,7 +34,7 @@ public class CouponService {
     @Transactional
     public RedeemCouponResponse redeemCoupon(RedeemCouponRequest request, String ip) {
 
-        final var id = request.couponId().toString().toLowerCase();
+        final var id = request.couponId().getNormalizedId();
         final var userId = request.userId();
         final var country = geoMappingService.getCountryCode(ip);
 

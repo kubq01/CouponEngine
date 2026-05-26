@@ -3,12 +3,13 @@ package org.example.couponengine.geo;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxmind.geoip2.DatabaseReader;
-import org.example.couponengine.geo.exception.GeoLookupException;
+import org.example.couponengine.commons.GeoLookupException;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.time.Duration;
 
@@ -23,8 +24,10 @@ public class GeoMappingService {
             .build();
 
     public GeoMappingService() throws IOException {
-        File db = new ClassPathResource("geo/GeoLite2-Country.mmdb").getFile();
-        this.reader = new DatabaseReader.Builder(db).build();
+        Resource resource = new ClassPathResource("geo/GeoLite2-Country.mmdb");
+        try (InputStream is = resource.getInputStream()) {
+            this.reader = new DatabaseReader.Builder(is).build();
+        }
     }
 
     public String getCountryCode(String ip) {

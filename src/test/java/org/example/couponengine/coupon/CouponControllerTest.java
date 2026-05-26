@@ -58,7 +58,7 @@ class CouponControllerTest extends BaseIntegrationTest {
         @Test
         void shouldCreateCouponAndSaveInDatabase() throws Exception {
             //when
-            String request = createCouponCreateRequest("spring", Instant.now(), 10, 0, "PL");
+            String request = createCouponCreateRequest("spring", Instant.now(), 10, "PL");
 
             //then
             mockMvc.perform(post(createCouponUrl())
@@ -75,7 +75,7 @@ class CouponControllerTest extends BaseIntegrationTest {
         @Test
         void shouldReturnBadRequestWhenCouponIdIsInvalid() throws Exception {
             //when
-            String request = createCouponCreateRequest("invalid-id!", Instant.now(), 10, 0, "PL");
+            String request = createCouponCreateRequest("invalid-id!", Instant.now(), 10, "PL");
 
             //then
             mockMvc.perform(post(createCouponUrl())
@@ -87,7 +87,19 @@ class CouponControllerTest extends BaseIntegrationTest {
         @Test
         void shouldReturnBadRequestWhenCountryIdIsInvalid() throws Exception {
             //when
-            String request = createCouponCreateRequest("spring", Instant.now(), 10, 0, "invalid-country-code");
+            String request = createCouponCreateRequest("spring", Instant.now(), 10, "invalid-country-code");
+
+            //then
+            mockMvc.perform(post(createCouponUrl())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(request))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void shouldReturnBadRequestWhenMaxUsagesAreBelow0() throws Exception {
+            //when
+            String request = createCouponCreateRequest("spring", Instant.now(), -10, "invalid-country-code");
 
             //then
             mockMvc.perform(post(createCouponUrl())
@@ -99,8 +111,8 @@ class CouponControllerTest extends BaseIntegrationTest {
         @Test
         void shouldRejectDuplicateCouponId() throws Exception {
             //when
-            String request1 = createCouponCreateRequest("spring", Instant.now(), 10, 0, "PL");
-            String request2 = createCouponCreateRequest("SPRING", Instant.now(), 10, 0, "PL");
+            String request1 = createCouponCreateRequest("spring", Instant.now(), 10, "PL");
+            String request2 = createCouponCreateRequest("SPRING", Instant.now(), 10, "PL");
 
             //then
             mockMvc.perform(post(createCouponUrl())
@@ -345,17 +357,15 @@ class CouponControllerTest extends BaseIntegrationTest {
         """.formatted(couponId, userId);
     }
 
-    private String createCouponCreateRequest(String id, Instant createdAt, int maxUsages,
-                                             int currentUsages, String countryCode) {
+    private String createCouponCreateRequest(String id, Instant createdAt, int maxUsages, String countryCode) {
         return """
             {
               "id": "%s",
               "createdAt": "%s",
               "maxUsages": %s,
-              "currentUsages": %s,
               "countryCode": "%s"
             }
-            """.formatted(id, createdAt.toString(), maxUsages, currentUsages, countryCode);
+            """.formatted(id, createdAt.toString(), maxUsages, countryCode);
     }
 
     private String redeemCouponUrl() {

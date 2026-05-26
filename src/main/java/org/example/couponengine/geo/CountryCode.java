@@ -3,12 +3,13 @@ package org.example.couponengine.geo;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.NonNull;
+import org.example.couponengine.coupon.exception.InvalidRequestParameter;
 
 public record CountryCode(String countryCode) {
     @JsonCreator
     public CountryCode {
         if (countryCode == null || !countryCode.matches("^[a-zA-Z]+$") || countryCode.length() > 10) {
-            throw new IllegalArgumentException("Country code is invalid");
+            throw new InvalidRequestParameter("Country code is invalid");
         }
     }
 

@@ -1,4 +1,4 @@
-package org.example.couponengine.exceptions;
+package org.example.couponengine.coupon.exception;
 
 public class CouponAlreadyExistsException extends RuntimeException {
     public CouponAlreadyExistsException(String id) {

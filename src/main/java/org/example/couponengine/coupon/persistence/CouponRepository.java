@@ -1,4 +1,4 @@
-package org.example.couponengine.database;
+package org.example.couponengine.coupon.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,5 +16,5 @@ public interface CouponRepository extends JpaRepository<CouponEntity, String> {
             SET c.currentUsages = c.currentUsages + 1
             WHERE c.id = :id AND c.currentUsages < c.maxUsages
             """)
-    int incrementIfPossible(@Param("id") String id);
+    int redeemIfPossible(@Param("id") String id);
 }

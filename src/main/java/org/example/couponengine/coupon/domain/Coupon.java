@@ -1,9 +1,8 @@
-package org.example.couponengine.service;
+package org.example.couponengine.coupon.domain;
 
 import lombok.AllArgsConstructor;
-import org.example.couponengine.api.CreateCouponRequest;
-import org.example.couponengine.database.CouponEntity;
-import org.example.couponengine.api.CouponId;
+import org.example.couponengine.coupon.dto.CreateCouponRequest;
+import org.example.couponengine.coupon.persistence.CouponEntity;
 import org.example.couponengine.geo.CountryCode;
 
 import java.time.Instant;
@@ -37,6 +36,6 @@ public class Coupon {
     }
 
     public String getId() {
-        return this.id.id();
+        return this.id.toString();
     }
 }

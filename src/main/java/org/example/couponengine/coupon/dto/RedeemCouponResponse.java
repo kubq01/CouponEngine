@@ -1,6 +1,6 @@
-package org.example.couponengine.api;
+package org.example.couponengine.coupon.dto;
 
-public enum UseCouponResponse {
+public enum RedeemCouponResponse {
     SUCCESS,
     INVALID_COUNTRY_FAILURE,
     MAX_USAGES_REACHED_FAILURE,

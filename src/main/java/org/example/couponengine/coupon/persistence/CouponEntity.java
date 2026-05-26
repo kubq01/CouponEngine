@@ -1,6 +1,5 @@
-package org.example.couponengine.database;
+package org.example.couponengine.coupon.persistence;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -15,7 +14,6 @@ import java.time.Instant;
 @Getter
 public class CouponEntity {
     @Id
-    @Column(nullable = false, unique = true)
     String id;
     Instant createdAt;
     int maxUsages;

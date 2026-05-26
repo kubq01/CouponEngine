@@ -1,5 +1,6 @@
-package org.example.couponengine.api;
+package org.example.couponengine.coupon.dto;
 
+import org.example.couponengine.coupon.domain.CouponId;
 import org.example.couponengine.geo.CountryCode;
 
 import java.time.Instant;

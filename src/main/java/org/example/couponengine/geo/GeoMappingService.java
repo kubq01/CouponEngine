@@ -3,6 +3,7 @@ package org.example.couponengine.geo;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.maxmind.geoip2.DatabaseReader;
+import org.example.couponengine.geo.exception.GeoLookupException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
@@ -36,8 +37,14 @@ public class GeoMappingService {
             return reader.country(inetAddress)
                     .country()
                     .isoCode();
+        } catch (IllegalArgumentException e) {
+            throw new GeoLookupException("Invalid IP format: " + ip);
+
+        } catch (IOException e) {
+            throw new GeoLookupException("GeoIP database error for IP: " + ip);
+
         } catch (Exception e) {
-            throw new RuntimeException("GeoIP lookup failed", e);
+            throw new GeoLookupException("Unexpected GeoIP lookup failure for IP: " + ip);
         }
     }
 }

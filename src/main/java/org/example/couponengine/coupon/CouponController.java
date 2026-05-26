@@ -1,9 +1,11 @@
-package org.example.couponengine.api;
+package org.example.couponengine.coupon;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.example.couponengine.service.Coupon;
-import org.example.couponengine.service.CouponService;
+import org.example.couponengine.coupon.dto.CreateCouponRequest;
+import org.example.couponengine.coupon.dto.RedeemCouponRequest;
+import org.example.couponengine.coupon.dto.RedeemCouponResponse;
+import org.example.couponengine.coupon.domain.Coupon;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,15 +22,13 @@ public class CouponController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/use")
-    public ResponseEntity<UseCouponResponse> use(
-            @RequestBody UseCouponRequest useCouponRequest,
+    @PostMapping("/redeem")
+    public ResponseEntity<RedeemCouponResponse> redeem(
+            @RequestBody RedeemCouponRequest redeemCouponRequest,
             HttpServletRequest servletRequest
     ) {
-        String ip = extractIp(servletRequest);
-
         return ResponseEntity.ok(
-                couponService.useCoupon(useCouponRequest.couponId(), ip, useCouponRequest.userId())
+                couponService.redeemCoupon(redeemCouponRequest, extractIp(servletRequest))
         );
     }
 

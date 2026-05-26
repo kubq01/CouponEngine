@@ -1,4 +1,4 @@
-package org.example.couponengine.database;
+package org.example.couponengine.coupon.persistence;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

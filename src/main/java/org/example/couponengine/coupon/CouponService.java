@@ -1,19 +1,19 @@
-package org.example.couponengine.service;
+package org.example.couponengine.coupon;
 
 import lombok.AllArgsConstructor;
-import org.example.couponengine.api.CouponId;
-import org.example.couponengine.api.UseCouponResponse;
-import org.example.couponengine.api.UserId;
-import org.example.couponengine.database.CouponRepository;
-import org.example.couponengine.database.CouponUsageRepository;
-import org.example.couponengine.exceptions.CouponAlreadyExistsException;
+import org.example.couponengine.coupon.dto.RedeemCouponRequest;
+import org.example.couponengine.coupon.dto.RedeemCouponResponse;
+import org.example.couponengine.coupon.persistence.CouponRepository;
+import org.example.couponengine.coupon.persistence.CouponUsageRepository;
+import org.example.couponengine.coupon.exception.CouponAlreadyExistsException;
 import org.example.couponengine.geo.GeoMappingService;
+import org.example.couponengine.coupon.domain.Coupon;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
-import static org.example.couponengine.api.UseCouponResponse.*;
+import static org.example.couponengine.coupon.dto.RedeemCouponResponse.*;
 
 @Service
 @AllArgsConstructor
@@ -32,10 +32,10 @@ public class CouponService {
     }
 
     @Transactional
-    public UseCouponResponse useCoupon(CouponId couponId, String ip, UserId userId) {
+    public RedeemCouponResponse redeemCoupon(RedeemCouponRequest request, String ip) {
 
-        final var id = couponId.toString().toLowerCase();
-
+        final var id = request.couponId().toString().toLowerCase();
+        final var userId = request.userId();
         final var country = geoMappingService.getCountryCode(ip);
 
         final var coupon = couponRepository.findById(id)
@@ -59,7 +59,7 @@ public class CouponService {
             return COUPON_ALREADY_USED_BY_USER_FAILURE;
         }
 
-        final int updated = couponRepository.incrementIfPossible(id);
+        final int updated = couponRepository.redeemIfPossible(id);
 
         if (updated != 1) {
             return MAX_USAGES_REACHED_FAILURE;

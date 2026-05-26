@@ -1,4 +1,4 @@
-package org.example.couponengine.database;
+package org.example.couponengine.coupon.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

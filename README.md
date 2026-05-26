@@ -73,6 +73,18 @@ Celem tego podejścia jest:
 
 ---
 
+## Wybór bazy danych
+
+Zdecydowano się na relacyjną bazę danych ze względu na wymagania dotyczące spójności danych i współbieżności.
+
+Relacyjne bazy danych zapewniają:
+- pełne wsparcie dla transakcji (ACID),
+- łatwe modelowanie relacji (kupon–użytkownik–użycia),
+- możliwość egzekwowania integralności danych na poziomie bazy,
+- atomowe operacje dobrze dopasowane do scenariuszy wysokiej współbieżności.
+
+---
+
 ## Dane lokalizacyjne użytkownika
 
 Kraj użytkownika określany jest na podstawie adresu IP pochodzącego z requestu HTTP.
@@ -391,6 +403,18 @@ The purpose of this approach is:
 
 - reducing the risk of application errors,
 - reducing the possibility of SQL Injection attacks.
+
+---
+
+## Database Choice
+
+A relational database was chosen due to the requirements for data consistency and concurrency handling.
+
+Relational database systems provide:
+- full ACID transaction support,
+- clear modeling of relationships (coupon–user–usage),
+- enforcement of data integrity at the database level,
+- atomic operations that are well-suited for high-concurrency scenarios.
 
 ---
 
